@@ -2,6 +2,7 @@
   "name": "node-crawler",
   "dependencies": {
     "body-parser": "^1.18.2",
+    "cheerio": "^1.0.0-rc.2",
     "express": "~4.13.4",
     "iconv-lite": "^0.4.19",
     "moment": "^2.19.1",

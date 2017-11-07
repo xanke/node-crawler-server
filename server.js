@@ -5,7 +5,8 @@ var tool = require('./lib/tool')
 
 var app = express()
 
-
+var iconv   = require('iconv-lite')
+var cheerio = require('cheerio')
  
 // create application/json parser
 var jsonParser = bodyParser.json()
@@ -15,27 +16,74 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false })
  
 
 //启动扫描
-app.post('/scan', urlencodedParser, function (req, resuset) {
-  if (!req.body) return resuset.sendStatus(400)
-  	// console.log(req.body)
+app.post('/scan', urlencodedParser, function (req, resFn) {
+  if (!req.body) return resFn.sendStatus(400)
 
   let body = req.body
+  let {url, content, content_item} = body
 
-  let opt = {
-  	url: '//baidu.com'
+  content_item = JSON.parse(content_item)
+
+  let err = ''
+  if (!url) {
+    err = '无url'
   }
 
-  let aaa = 'sb'
 
-  tool.getWebsite(opt).then( function (body, res) {
-  	// console.log(res)
-  	let opt = '32'
-  	console.log(opt)
+  if (err) {
+    resFn.json(err)
+  }
 
-  	resuset.send('32')
-  	// res.send(body)
+  let opt = {
+  	url
+  }
+
+  tool.getWebsite(opt).then( function (res) {
+  	
+
+    let body = res.text
+
+    let nArr = []
+
+    if (typeof(body) == 'string') {
+
+      let $ = cheerio.load(body)
+
+      $(content).each((index, item) => {
+        let cItem = $(item)
+
+        let json = {}
+
+        //列表采集方法
+        for (let k in content_item) {
+          let item = content_item[k]
+          let [find, attr] = item
+
+          let val = cItem.find(find)
+          if (attr) {
+            val = val.attr(attr)
+          } else {
+            val = val.text()
+          }
+          json[k] = val
+        }
+        nArr.push(json)
+      })
+
+    }
+
+    let ret = {
+      length: nArr.length,
+      arr: nArr
+    }
+
+    resFn.json(ret)
+
+  
+
+  }, function(err) {
+    resFn.json(err)
   })
-
   
 })
 
