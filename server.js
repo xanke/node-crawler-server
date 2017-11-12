@@ -1,6 +1,10 @@
 var express = require('express')
 var bodyParser = require('body-parser')
 
+var crypto = require('crypto');
+var md5 = crypto.createHash('md5');
+
+
 var tool = require('./lib/tool')
 
 var app = express()
@@ -10,7 +14,7 @@ var cheerio = require('cheerio')
  
 // create application/json parser
 var jsonParser = bodyParser.json()
- 
+
 // create application/x-www-form-urlencoded parser
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
  
@@ -20,15 +24,14 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
   if (!req.body) return resFn.sendStatus(400)
 
   let body = req.body
-  let {url, content, content_item} = body
+  let {url, model, oid} = body
 
-  content_item = JSON.parse(content_item)
+  model = JSON.parse(model)
 
   let err = ''
   if (!url) {
     err = '无url'
   }
-
 
   if (err) {
     resFn.json(err)
@@ -40,67 +43,60 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
 
   tool.getWebsite(opt).then( function (res) {
   	
-
     let body = res.text
-
     let nArr = []
 
     if (typeof(body) == 'string') {
 
       let $ = cheerio.load(body)
 
-      $(content).each((index, item) => {
-        let cItem = $(item)
+      model.forEach((item) => {
+        // console.log(item)
+        $(item.find).each(($index, $item) => {
+          $item = $($item)
+          let json = {}
 
-        let json = {}
+          //遍历元素
+          item.child.forEach((item) => {
+            json[item.name] = []
 
-        //列表采集方法
-        for (let k in content_item) {
-          let item = content_item[k]
-          let [find, attr] = item
-
-          let val = cItem.find(find)
-          if (attr) {
-            val = val.attr(attr)
-          } else {
-            val = val.text()
-          }
-          json[k] = val
-        }
-        nArr.push(json)
+            //遍历方法
+            item.method.forEach((mItem) => {
+              let {find, attr} = mItem
+              let val = $item.find(find)
+              
+              if (attr) {
+                val = val.attr(attr)
+              } else {
+                val = val.text()
+              }
+              json[item.name].push(val)
+            })
+            json[item.name] = json[item.name][0]
+          })
+          nArr.push(json)
+        })
       })
-
     }
 
     let ret = {
-      length: nArr.length,
-      arr: nArr
+      error: '',
+      code: 200,
+      data: {
+        oid,
+        url,
+        length: nArr.length,
+        hash: require('crypto').createHash('md5').update(JSON.stringify(nArr)).digest('hex'),
+        arr: nArr
+      }
     }
-
     resFn.json(ret)
-
-  
-
   }, function(err) {
     resFn.json(err)
   })
-  
 })
 
-
-
-
-
- 
-// // POST /api/users gets JSON bodies
-// app.post('/api/users', jsonParser, function (req, res) {
-//   if (!req.body) return res.sendStatus(400)
-//   	console.log(req.body)
-//   // create user in req.body
-// })
-
-
-var server = app.listen(9099, function () {
+var server = app.listen(1112, function () {
   var host = server.address().address;
   var port = server.address().port;
 
