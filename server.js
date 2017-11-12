@@ -19,14 +19,56 @@ var jsonParser = bodyParser.json()
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
  
 
+app.all('*', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With, sessionId, authKey, Accept, Content-Type, Origin");
+    res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+    // res.header("X-Powered-By",' 3.2.1')
+    res.header("Content-Type", "application/json;charset=utf-8");
+    next();
+});
+
+
+
+
 //启动扫描
 app.post('/scan', urlencodedParser, function (req, resFn) {
+
+
+
+
+
   if (!req.body) return resFn.sendStatus(400)
 
   let body = req.body
+  
+
+  // console.log(body.url)
+  // return
+
+  // let nBody = {}
+
+  // for (k in body) {
+  //   if (k.length > 100) {
+  //     nBody = k
+  //     nBody = JSON.parse(nBody)
+  //     body = nBody
+  //   }
+  // }
+
+
+
+
+  // }
+  
+
+
   let {url, model, oid} = body
 
+
+
   model = JSON.parse(model)
+
 
   let err = ''
   if (!url) {
@@ -64,7 +106,7 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
             item.method.forEach((mItem) => {
               let {find, attr} = mItem
               let val = $item.find(find)
-              
+
               if (attr) {
                 val = val.attr(attr)
               } else {
@@ -80,15 +122,13 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
     }
 
     let ret = {
-      error: '',
-      code: 200,
-      data: {
-        oid,
-        url,
-        length: nArr.length,
-        hash: require('crypto').createHash('md5').update(JSON.stringify(nArr)).digest('hex'),
-        arr: nArr
-      }
+   
+      oid,
+      url,
+      length: nArr.length,
+      hash: require('crypto').createHash('md5').update(JSON.stringify(nArr)).digest('hex'),
+      arr: nArr
+   
     }
     resFn.json(ret)
   }, function(err) {
