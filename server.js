@@ -115,17 +115,15 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
               
             })
 
-
-
             if (typeof(json_item) === 'object') {
               if (json_item.length === 1) {
+                json_item = ""
+              } else if (json_item.length === 1) {
                 json_item = json_item[0]
               }
             }
 
             json[item.name] = json_item
-
-            
           })
           nArr.push(json)
         })
