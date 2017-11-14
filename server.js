@@ -116,7 +116,7 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
             })
 
             if (typeof(json_item) === 'object') {
-              if (json_item.length === 1) {
+              if (json_item.length === 0) {
                 json_item = ""
               } else if (json_item.length === 1) {
                 json_item = json_item[0]
