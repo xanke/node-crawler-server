@@ -55,17 +55,11 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
   //     body = nBody
   //   }
   // }
-
-
-
-
   // }
   
 
 
   let {url, model, oid} = body
-
-
 
   model = JSON.parse(model)
 
@@ -92,8 +86,8 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
 
       let $ = cheerio.load(body)
 
+      //采集模型
       model.forEach((item) => {
-        // console.log(item)
         $(item.find).each(($index, $item) => {
           $item = $($item)
           let json = {}
@@ -101,6 +95,8 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
           //遍历元素
           item.child.forEach((item) => {
             json[item.name] = []
+
+            let json_item = json[item.name]
 
             //遍历方法
             item.method.forEach((mItem) => {
@@ -112,9 +108,24 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
               } else {
                 val = val.text()
               }
-              json[item.name].push(val)
+
+              if (val) {
+                json_item.push(val)
+              }
+              
             })
-            json[item.name] = json[item.name][0]
+
+
+
+            if (typeof(json_item) === 'object') {
+              if (json_item.length === 1) {
+                json_item = json_item[0]
+              }
+            }
+
+            json[item.name] = json_item
+
+            
           })
           nArr.push(json)
         })
@@ -122,7 +133,6 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
     }
 
     let ret = {
-   
       oid,
       url,
       length: nArr.length,
