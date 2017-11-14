@@ -28,15 +28,8 @@ app.all('*', function(req, res, next) {
     next();
 });
 
-
-
-
 //启动扫描
 app.post('/scan', urlencodedParser, function (req, resFn) {
-
-
-
-
 
   if (!req.body) return resFn.sendStatus(400)
 
@@ -81,11 +74,20 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
   	
     let body = res.text
     let nArr = []
+    let mode = ''
 
-    if (typeof(body) == 'string') {
+    try 
+    { 
+      JSON.parse(body)
+      mode = 'json'
+    } 
+    catch (e) 
+    { 
+      mode = 'cheerio'
+    } 
 
+    if (mode == 'cheerio') {
       let $ = cheerio.load(body)
-
       //采集模型
       model.forEach((item) => {
         $(item.find).each(($index, $item) => {
@@ -122,6 +124,32 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
                 json_item = json_item[0]
               }
             }
+
+            json[item.name] = json_item
+          })
+          nArr.push(json)
+        })
+      })
+
+    } else {
+      body = JSON.parse(body)
+
+      //采集模型
+      model.forEach((item) => {
+        let arr = eval('body.' + item.find)
+        arr.forEach((bItem) => {
+          let json = {}
+
+          // //遍历元素
+          item.child.forEach((item) => {
+            json[item.name] = ''
+            let json_item = ''
+
+            //遍历方法
+            item.method.forEach((mItem) => {
+              let {find, attr} = mItem
+              json_item = eval('bItem.' + find)
+            })
 
             json[item.name] = json_item
           })
