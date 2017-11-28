@@ -1,5 +1,6 @@
 {
   "name": "node-crawler",
+  "version": "0.1.0",
   "dependencies": {
     "body-parser": "^1.18.2",
     "cheerio": "^1.0.0-rc.2",
