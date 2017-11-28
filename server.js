@@ -1,23 +1,18 @@
-var express = require('express')
+var express    = require('express')
 var bodyParser = require('body-parser')
+var crypto     = require('crypto');
+var md5        = crypto.createHash('md5');
 
-var crypto = require('crypto');
-var md5 = crypto.createHash('md5');
-
-
-var tool = require('./lib/tool')
-
-var app = express()
-
-var iconv   = require('iconv-lite')
-var cheerio = require('cheerio')
+var tool       = require('./lib/tool')
+var app        = express()
+var iconv      = require('iconv-lite')
+var cheerio    = require('cheerio')
  
 // create application/json parser
 var jsonParser = bodyParser.json()
 
 // create application/x-www-form-urlencoded parser
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
- 
 
 app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -30,32 +25,12 @@ app.all('*', function(req, res, next) {
 
 //启动扫描
 app.post('/scan', urlencodedParser, function (req, resFn) {
-
   if (!req.body) return resFn.sendStatus(400)
 
   let body = req.body
-  
-
-  // console.log(body.url)
-  // return
-
-  // let nBody = {}
-
-  // for (k in body) {
-  //   if (k.length > 100) {
-  //     nBody = k
-  //     nBody = JSON.parse(nBody)
-  //     body = nBody
-  //   }
-  // }
-  // }
-  
-
-
   let {url, model, oid} = body
 
   model = JSON.parse(model)
-
 
   let err = ''
   if (!url) {
@@ -71,11 +46,11 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
   }
 
   tool.getWebsite(opt).then( function (res) {
-  	
     let body = res.text
     let nArr = []
     let mode = ''
 
+    //返回类型判断
     try 
     { 
       JSON.parse(body)
@@ -93,30 +68,24 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
         $(item.find).each(($index, $item) => {
           $item = $($item)
           let json = {}
-
           //遍历元素
           item.child.forEach((item) => {
             json[item.name] = []
 
             let json_item = json[item.name]
-
-            //遍历方法
+            //遍历类型方法
             item.method.forEach((mItem) => {
               let {find, attr} = mItem
               let val = $item.find(find)
-
               if (attr) {
                 val = val.attr(attr)
               } else {
                 val = val.text()
               }
-
               if (val) {
                 json_item.push(val)
               }
-              
             })
-
             if (typeof(json_item) === 'object') {
               if (json_item.length === 0) {
                 json_item = ""
@@ -124,16 +93,13 @@ app.post('/scan', urlencodedParser, function (req, resFn) {
                 json_item = json_item[0]
               }
             }
-
             json[item.name] = json_item
           })
           nArr.push(json)
         })
       })
-
     } else {
       body = JSON.parse(body)
-
       //采集模型
       model.forEach((item) => {
         let arr = eval('body.' + item.find)

@@ -4,6 +4,7 @@
 
 #### DEMO
 发送请求
+run npm dev
 POST: /scan
 ```json
 {
@@ -12,3 +13,8 @@ POST: /scan
     "oid": "7e11c4cb-0456-e9a9-65d5-b64c86d12b94"
 }
 ```
+
+#### 部署
+推荐使用 forever https://github.com/foreverjs/forever
+##### 启动服务器
+forever start server.js
